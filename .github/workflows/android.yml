@@ -33,6 +33,30 @@ jobs:
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/filesystem@6 @capacitor/share@6 @capacitor/assets@3
           npx cap init "Napló" com.bendivida.naplo --web-dir www
           npx cap add android
+          cat > android/app/src/main/java/com/bendivida/naplo/MainActivity.java <<'EOF'
+          package com.bendivida.naplo;
+
+          import android.os.Bundle;
+          import android.view.View;
+          import androidx.core.graphics.Insets;
+          import androidx.core.view.ViewCompat;
+          import androidx.core.view.WindowInsetsCompat;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+            @Override
+            public void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              View root = findViewById(android.R.id.content);
+              root.setBackgroundColor(0xFFF7F5FA);
+              ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+                Insets i = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+                v.setPadding(i.left, i.top, i.right, i.bottom);
+                return WindowInsetsCompat.CONSUMED;
+              });
+            }
+          }
+          EOF
           mkdir -p assets
           sudo apt-get update -qq
           sudo apt-get install -y -qq imagemagick
