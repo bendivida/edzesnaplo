@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edzésnapló</title>
+<meta name="theme-color" content="#F7F5FA">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Edzésnapló">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+html{background:#F7F5FA;-webkit-text-size-adjust:100%}
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+
+/* Layout: egy keskeny telefonoszlop, fix alsó menüsor; világos, lekerekített felületek, edzésnaponként saját szín */
+:root{--bg:#F7F5FA;--ink:#25222D;--mute:#6E6A78;--line:#E6E2EC;--card:#FFFFFF;--track:#ECE8F1;--faint:#B0ACBA;--danger:#B42349;--ok:#3A610A;--ok-tint:#E7F5CF;--font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.35;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,textarea,select{font-family:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #25222D;outline-offset:2px}
+#app{max-width:430px;margin:0 auto;padding-top:24px;padding-bottom:calc(112px + env(safe-area-inset-bottom,0px));min-width:0}
+h1{margin:2px 0 0;font-size:28px;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+h1.long{font-size:25px}
+h2{margin:0;font-size:18px;font-weight:800}
+.eyebrow{font-size:13px;font-weight:600;color:var(--mute)}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px}
+.hdr>div:first-child{min-width:0}
+.btns{display:flex;gap:8px;flex:none}
+.ib{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;flex:none;padding:0}
+.ib.bare{border:0;background:transparent;border-radius:14px}
+.ib.danger{color:var(--danger)}
+.ib.ok{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.seg{margin:18px 4px 0;padding:4px;background:var(--track);border-radius:16px;display:flex;gap:4px}
+.seg button{flex:1;height:40px;border:0;border-radius:12px;background:transparent;font-size:14px;font-weight:600;color:var(--mute)}
+.seg button[aria-pressed=true]{background:#fff;box-shadow:0 1px 4px rgba(37,34,45,.14);font-weight:700;color:var(--ink)}
+.linkbtn{display:block;margin:12px auto 0;border:0;background:transparent;font-size:13px;font-weight:700;color:#0A6F65;min-height:44px;padding:0 12px}
+
+.wk{margin-top:18px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;font-size:12px;font-weight:700;color:var(--mute)}
+.grid{margin-top:8px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cell{height:54px;border-radius:14px;border:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:15px;font-weight:600;color:var(--ink);padding:0}
+.cell.out{background:transparent;color:#A5A1AF;font-weight:500}
+.cell.has{background:var(--tint);color:var(--deep);font-weight:700}
+.cell .ltr{font-size:11px;font-weight:800;line-height:1}
+.cell.today{border:2px solid var(--ink);font-weight:800}
+.cell.today:not(.has){background:#fff;color:var(--ink)}
+.legend{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;padding:0 4px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--tint);color:var(--deep);font-size:12px;font-weight:700}
+.chip i{width:8px;height:8px;border-radius:4px;background:var(--solid)}
+.card{background:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 2px 10px rgba(37,34,45,.06)}
+.todaycard{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.todaycard .sm{font-size:12px;font-weight:600;color:var(--mute)}
+.todaycard .big{margin-top:2px;font-size:15px;font-weight:700}
+
+.btn{height:52px;border:0;border-radius:16px;font-weight:700;font-size:15px;padding:0 18px}
+.btn.pri{background:var(--ink);color:#fff}
+.btn.sec{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:#fff;border:1px solid #F0C2CF;color:var(--danger)}
+.btn.small{height:44px;font-size:14px;padding:0 14px;border-radius:14px}
+.btn.wide{width:100%}
+
+.rows{margin-top:20px;display:flex;flex-direction:column;gap:10px}
+.wrow{display:flex;align-items:center;gap:12px}
+.wdate{width:44px;text-align:center;flex:none}
+.wdate .d{font-size:12px;font-weight:700;color:var(--mute)}
+.wdate .n{font-size:20px;font-weight:800;line-height:1.2}
+.wdate .n.now{width:36px;height:36px;margin:0 auto;border-radius:18px;background:var(--ink);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center}
+.wcard{flex:1;min-width:0;min-height:64px;border:0;border-radius:20px;background:var(--tint);padding:0 16px 0 14px;display:flex;align-items:center;gap:12px;text-align:left;color:var(--deep)}
+.dot{width:38px;height:38px;border-radius:19px;background:var(--solid);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--on,var(--ink));flex:none}
+.wcard .t{flex:1;min-width:0;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wcard.empty{background:transparent;border:1.5px dashed #D3CEDC;color:var(--mute);padding-left:18px}
+.wcard.empty .t{font-size:15px;font-weight:600}
+.wcard.empty.today{background:#fff;border:2px solid var(--ink);color:var(--ink)}
+.wcard.empty.today .t{font-weight:700}
+
+.savechip{flex:none;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:var(--ok-tint);font-size:12px;font-weight:700;color:var(--ok)}
+.savechip.busy,.savechip.local{background:var(--track);color:var(--mute)}
+.savechip.err{background:#FDE3EA;color:var(--danger)}
+.dsel{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
+.dsel button{min-height:46px;padding:0 10px;border:1px solid var(--line);border-radius:16px;background:#fff;font-size:15px;font-weight:600;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsel button[aria-pressed=true]{border:2px solid var(--solid);background:var(--tint);color:var(--deep);font-weight:800}
+.empty-note{margin-top:20px;padding:22px 18px;border:1.5px dashed #D3CEDC;border-radius:22px;text-align:center;color:var(--mute);font-weight:600;line-height:1.5}
+.stack{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.ex{background:#fff;border-radius:22px;padding:14px 14px 14px 16px;box-shadow:0 2px 10px rgba(37,34,45,.06)}
+.ex-top{display:flex;align-items:center;justify-content:space-between;gap:6px 8px;flex-wrap:wrap}
+.ex-top .nm{font-size:17px;font-weight:800;min-width:0}
+.hint{padding:4px 10px;border-radius:999px;background:var(--tint);color:var(--deep);font-size:12px;font-weight:700}
+.hint.none{background:var(--track);color:var(--mute)}
+.fields{margin-top:10px;display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:10px}
+.fields label{display:block;font-size:12px;font-weight:600;color:var(--mute)}
+.fields input{margin-top:4px;width:100%;height:46px;border:1px solid var(--line);border-radius:14px;background:var(--bg);text-align:center;font-size:18px;font-weight:800;color:var(--ink);min-width:0}
+.fields input.w{background:#fff;border:1px dashed #CFCAD8}
+.fields input.w.filled{border:2px solid var(--solid)}
+input::placeholder,textarea::placeholder{color:#8F8B9A;opacity:1;font-weight:600}
+.note label{display:block;font-size:12px;font-weight:600;color:var(--mute)}
+.note textarea{margin-top:4px;width:100%;border:0;resize:none;padding:0;background:transparent;font-size:16px;font-weight:500;color:var(--ink);outline:none;min-height:48px}
+.note:focus-within{outline:3px solid var(--ink);outline-offset:2px}
+
+.plan{width:100%;border:0;border-radius:24px;background:var(--tint);padding:16px;display:flex;align-items:center;gap:14px;text-align:left;color:var(--deep)}
+.plan .dot{width:54px;height:54px;border-radius:27px;font-size:24px}
+.plan .tx{flex:1;min-width:0}
+.plan .a{display:block;font-size:18px;font-weight:800}
+.plan .b{display:block;margin-top:3px;font-size:13px;font-weight:600}
+.plan .c{display:block;margin-top:2px;font-size:13px;font-weight:500;color:var(--ink);opacity:.78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dashed{width:100%;min-height:64px;border:2px dashed #CFCAD8;border-radius:24px;background:transparent;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:700;color:var(--ink)}
+.banner{margin-top:16px;padding:14px 16px;border-radius:18px;background:#FFF3CF;color:#6B4A00;font-size:13px;font-weight:600;line-height:1.5;display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.banner button{flex:none;min-height:44px;border:0;background:transparent;font-size:13px;font-weight:800;color:#6B4A00;padding:0 4px}
+.sect{margin:22px 4px 10px;display:flex;align-items:baseline;justify-content:space-between}
+.data p{margin:6px 0 0;font-size:13px;font-weight:500;color:var(--mute);line-height:1.5}
+.data .row{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+
+.field{background:#fff;border-radius:22px;padding:14px 16px 16px;box-shadow:0 2px 10px rgba(37,34,45,.06)}
+.field label,.field .lb{display:block;font-size:12px;font-weight:600;color:var(--mute)}
+.field input[type=text]{margin-top:6px;width:100%;height:48px;border:2px solid var(--solid);border-radius:14px;background:#fff;padding:0 14px;font-size:17px;font-weight:700}
+.sw{margin-top:8px;display:flex;gap:12px;flex-wrap:wrap}
+.sw button{width:44px;height:44px;border-radius:22px;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);background:var(--solid);padding:0;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.sw button[aria-pressed=true]{border-color:var(--ink);box-shadow:none}
+.sw button{color:var(--on,var(--ink))}
+.sw .swc{background:conic-gradient(#FF5C5C,#FFC857,#98D04A,#2CC6B5,#5B8CFF,#B9A4FF,#FF7EB0,#FF5C5C)}
+.sw .swc.on{background:var(--solid)}
+.sw .swc .plus{width:22px;height:22px;border-radius:11px;background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.sheet.cp h2{margin-bottom:12px}
+.cp-prev{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;background:var(--tint)}
+.sv{position:relative;margin-top:14px;height:190px;border-radius:18px;touch-action:none;cursor:crosshair;background-image:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0))}
+.svthumb{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:13px;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(37,34,45,.5),0 2px 6px rgba(0,0,0,.3);pointer-events:none}
+.hue{position:relative;margin-top:16px;height:20px;border-radius:10px;touch-action:none;cursor:pointer;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.huethumb{position:absolute;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:14px;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(37,34,45,.5),0 2px 6px rgba(0,0,0,.3);pointer-events:none}
+.hexrow{margin-top:16px;display:flex;align-items:center;gap:12px}
+.hexrow label{font-size:12px;font-weight:700;color:var(--mute);width:32px}
+.hexrow input{flex:1;min-width:0;height:48px;border:1px solid var(--line);border-radius:14px;padding:0 14px;font-size:17px;font-weight:700;letter-spacing:.04em;background:var(--bg)}
+#exlist{display:flex;flex-direction:column;gap:8px}
+.exrow{min-height:60px;background:#fff;border-radius:18px;padding:0 6px 0 4px;display:flex;align-items:center;gap:4px;box-shadow:0 2px 10px rgba(37,34,45,.06);touch-action:pan-y}
+.exrow .nm{flex:1;min-width:0;font-size:16px;font-weight:700;overflow-wrap:anywhere;padding:8px 0}
+.exrow.dragging{box-shadow:0 8px 24px rgba(37,34,45,.2);position:relative;z-index:2}
+.exrow.editing{padding:8px 6px 8px 12px}
+.exrow input{flex:1;min-width:0;height:44px;border:2px solid var(--ink);border-radius:12px;padding:0 12px;font-size:16px;font-weight:700;background:#fff}
+.handle{width:36px;height:48px;border:0;background:transparent;touch-action:none;cursor:grab;color:var(--faint);display:flex;align-items:center;justify-content:center;flex:none;padding:0}
+.exrow.confirm{padding:8px 8px 8px 16px;gap:8px;flex-wrap:wrap}
+.footbtns{margin-top:24px;display:flex;gap:10px}
+.footbtns .pri{flex:1}
+
+.pickbtn{margin-top:14px;width:100%;min-height:60px;border:1px solid var(--line);border-radius:20px;background:#fff;padding:8px 16px 8px 14px;display:flex;align-items:center;gap:12px;text-align:left;font-size:17px;font-weight:800;box-shadow:0 2px 10px rgba(37,34,45,.06)}
+.pickbtn .pd{width:12px;height:12px;border-radius:6px;background:var(--solid);flex:none}
+.pickbtn .pn{flex:1;min-width:0;overflow-wrap:anywhere}
+.pickbtn small{display:block;font-size:12px;font-weight:600;color:var(--mute)}
+.sheet.pick{display:flex;flex-direction:column;max-height:78vh;padding:12px 16px 16px}
+.sheet.pick h2{padding:0 4px}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.pl{margin-top:10px;overflow-y:auto;min-height:0;display:flex;flex-direction:column;gap:6px;padding-bottom:4px}
+.pg{margin:10px 0 2px 4px}
+.pg:first-child{margin-top:0}
+.po{min-height:52px;border:0;border-radius:16px;background:var(--bg);padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;font-size:16px;font-weight:700;color:var(--ink)}
+.po.on{background:var(--tint);color:var(--deep);font-weight:800}
+.hero{margin-top:10px;background:var(--tint);border-radius:24px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--deep)}
+.hero .l{font-size:13px;font-weight:700}
+.hero .v{margin-top:2px;font-size:36px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.hero .v.sm{font-size:26px}
+.hero .s{margin-top:2px;font-size:13px;font-weight:600}
+.delta{display:flex;align-items:center;gap:4px;padding:8px 12px;border-radius:999px;background:#fff;font-size:15px;font-weight:800;color:var(--ok)}
+.delta.flat{color:var(--mute)}
+.delta.down{color:#A81D5A}
+.hero .r{flex:none;text-align:center}
+.hero .r small{display:block;margin-top:4px;font-size:11px;font-weight:600}
+.chartcard{margin-top:10px;padding:14px 14px 10px}
+.chartcard .tt{padding:0 4px;font-size:15px;font-weight:800}
+.chartcard svg{display:block;margin-top:6px;width:100%;height:auto}
+.chartcard .none{padding:18px 4px 10px;font-size:14px;font-weight:500;color:var(--mute);line-height:1.5}
+.hist{display:flex;flex-direction:column;gap:6px}
+.hrow{min-height:48px;border:0;background:#fff;border-radius:16px;padding:0 16px;display:flex;align-items:center;gap:10px;text-align:left;width:100%}
+.hrow .dt{width:78px;flex:none;font-size:14px;font-weight:700}
+.hrow .chip{padding:3px 9px;font-weight:800;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hrow .rp{flex:1;text-align:right;font-size:14px;font-weight:600;color:var(--mute)}
+.hrow .wt{min-width:62px;text-align:right;font-size:15px;font-weight:800}
+
+.nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--track);padding:10px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));z-index:20}
+.navin{max-width:430px;margin:0 auto;display:flex;justify-content:space-around}
+.nb{width:104px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;font-size:12px;font-weight:600;color:var(--mute)}
+.nb .pill{width:58px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center}
+.nb.on{color:var(--ink);font-weight:800}
+.nb.on .pill{background:#D4F5F0;color:#0A6F65}
+
+.overlay{position:fixed;inset:0;background:rgba(37,34,45,.45);display:flex;align-items:flex-end;justify-content:center;padding:16px;z-index:50}
+.sheet{background:#fff;border-radius:24px;padding:20px;width:100%;max-width:430px}
+.sheet p{margin:8px 0 0;font-size:14px;font-weight:500;color:var(--mute);line-height:1.5}
+.sheet textarea{margin-top:12px;width:100%;height:160px;border:1px solid var(--line);border-radius:14px;padding:10px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;resize:none;background:var(--bg)}
+.sheet .row{margin-top:16px;display:flex;gap:8px}
+.sheet .row .btn{flex:1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;z-index:60;max-width:90%;text-align:center}
+@media (prefers-reduced-motion:no-preference){.toast{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}}
+</style>
+
+</head>
+<body>
+<div id="app" aria-live="polite"></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+<div id="toastbox" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- konstansok ---------- */
+  var MON = ['január','február','március','április','május','június','július','augusztus','szeptember','október','november','december'];
+  var MONS = ['jan.','febr.','márc.','ápr.','máj.','jún.','júl.','aug.','szept.','okt.','nov.','dec.'];
+  var WDS = ['H','K','Sze','Cs','P','Szo','V'];
+  var WDL = ['vasárnap','hétfő','kedd','szerda','csütörtök','péntek','szombat'];
+  var PAL = {
+    teal:  { solid:'#2CC6B5', tint:'#D4F5F0', deep:'#0A6F65', label:'Türkiz' },
+    green: { solid:'#98D04A', tint:'#E7F5CF', deep:'#3A610A', label:'Almazöld' },
+    pink:  { solid:'#FF7EB0', tint:'#FFE0EC', deep:'#A81D5A', label:'Rózsaszín' },
+    lav:   { solid:'#B9A4FF', tint:'#ECE5FF', deep:'#5B3FC4', label:'Levendula' },
+    peach: { solid:'#FFB27A', tint:'#FFE8D6', deep:'#9A4A0C', label:'Barack' }
+  };
+  var PAL_KEYS = Object.keys(PAL);
+  var GREY = { solid:'#B0ACBA', tint:'#ECE8F1', deep:'#5B5766' };
+
+  /* egyéni szín: a kiválasztott színből képezzük a jelölő, háttér és szöveg árnyalatot */
+  function isHex(s) { return typeof s === 'string' && /^#[0-9a-fA-F]{6}$/.test(s); }
+  function hexRgb(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function rgbHex(r, g, b) { return '#' + [r, g, b].map(function (x) { x = Math.max(0, Math.min(255, Math.round(x))); return (x < 16 ? '0' : '') + x.toString(16); }).join(''); }
+  function lum(r, g, b) { var f = function (c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); }
+  function contrast(a, b) { var la = lum(a[0], a[1], a[2]), lb = lum(b[0], b[1], b[2]); return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05); }
+  function rgbHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0;
+    if (d) { if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+    return { h: h, s: mx ? d / mx : 0, v: mx };
+  }
+  function hsvRgb(h, s, v) {
+    var c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c, r = 0, g = 0, b = 0;
+    if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; } else if (h < 180) { g = c; b = x; }
+    else if (h < 240) { g = x; b = c; } else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+    return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+  }
+  var deriveCache = {};
+  function derive(hex) {
+    hex = hex.toLowerCase();
+    if (deriveCache[hex]) return deriveCache[hex];
+    var rgb = hexRgb(hex), tint = rgb.map(function (c) { return Math.round(c + (255 - c) * 0.82); });
+    var hsv = rgbHsv(rgb[0], rgb[1], rgb[2]), v = Math.min(hsv.v, 0.6), deep;
+    do { deep = hsvRgb(hsv.h, hsv.s, v); v -= 0.03; } while (contrast(deep, tint) < 4.6 && v > 0.05);
+    var res = { solid: hex, tint: rgbHex(tint[0], tint[1], tint[2]), deep: rgbHex(deep[0], deep[1], deep[2]), on: lum(rgb[0], rgb[1], rgb[2]) > 0.18 ? '#25222D' : '#FFFFFF' };
+    deriveCache[hex] = res;
+    return res;
+  }
+  var LS = 'edzesnaplo.v1';
+
+  function ic(p, size, sw) {
+    return '<svg width="' + (size||20) + '" height="' + (size||20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw||2.2) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+  }
+  var ICON = {
+    left: '<path d="M15 5l-7 7 7 7"/>',
+    right: '<path d="M9 5l7 7-7 7"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>',
+    pencil: '<path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4zM13.5 6.5l4 4"/>',
+    trash: '<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/>',
+    down: '<path d="M6 9l6 6 6-6"/>',
+    up: '<path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/>',
+    dn: '<path d="M12 5v14M5.5 12.5L12 19l6.5-6.5"/>',
+    cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    dumb: '<path d="M3 9.5v5M6 7v10M18 7v10M21 9.5v5M6 12h12"/>',
+    chart: '<path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/>'
+  };
+  var DOTS = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+
+  /* ---------- segédek ---------- */
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function parseYmd(s) { var a = s.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); }
+  function addDays(d, n) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() + n); return x; }
+  function mondayOf(d) { return addDays(d, -((d.getDay() + 6) % 7)); }
+  function isoWeek(d) {
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var day = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - day);
+    var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - y0) / 864e5 + 1) / 7);
+  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function uid() { return Math.random().toString(36).slice(2, 9); }
+  function fmtNum(n) { return String(Math.round(n * 100) / 100).replace('.', ','); }
+  function shortDate(s) {
+    var d = parseYmd(s);
+    var y = d.getFullYear() !== new Date().getFullYear() ? d.getFullYear() + '. ' : '';
+    return y + MONS[d.getMonth()] + ' ' + d.getDate() + '.';
+  }
+  function num(x) { return (typeof x === 'number' && isFinite(x)) ? x : null; }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  /* ---------- állapot ---------- */
+  function defaultState() {
+    return {
+      v: 1,
+      days: [
+        { id:'a', name:'A nap', color:'teal',  ex:[{id:'a1',name:'Guggolás'},{id:'a2',name:'Román felhúzás'},{id:'a3',name:'Hasprés'}] },
+        { id:'b', name:'B nap', color:'green', ex:[{id:'b1',name:'Fekvőtámasz'},{id:'b2',name:'Evezés'},{id:'b3',name:'Vállból nyomás'}] },
+        { id:'c', name:'C nap', color:'pink',  ex:[{id:'c1',name:'Kitörés'},{id:'c2',name:'Bicepsz'},{id:'c3',name:'Tricepsz'}] }
+      ],
+      logs: {},
+      examples: true,
+      lastExport: null
+    };
+  }
+  function normalize(o) {
+    if (!o || typeof o !== 'object') return null;
+    if (o.data && typeof o.data === 'object' && o.app === 'edzesnaplo') o = o.data;
+    if (!Array.isArray(o.days) || !o.logs || typeof o.logs !== 'object') return null;
+    var out = { v: 1, days: [], logs: {}, examples: !!o.examples, lastExport: typeof o.lastExport === 'string' ? o.lastExport : null };
+    var seen = {};
+    o.days.forEach(function (d) {
+      if (!d || typeof d.id !== 'string' || seen[d.id]) return;
+      seen[d.id] = 1;
+      var ex = [];
+      (Array.isArray(d.ex) ? d.ex : []).forEach(function (x) {
+        if (x && typeof x.id === 'string' && typeof x.name === 'string') ex.push({ id: x.id, name: x.name.slice(0, 80) });
+      });
+      out.days.push({ id: d.id, name: String(d.name == null ? '' : d.name).slice(0, 40), color: PAL[d.color] ? d.color : (isHex(d.color) ? d.color.toLowerCase() : 'teal'), ex: ex });
+    });
+    Object.keys(o.logs).forEach(function (k) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+      var l = o.logs[k];
+      if (!l || typeof l.dayId !== 'string') return;
+      var entries = {};
+      var src = (l.entries && typeof l.entries === 'object') ? l.entries : {};
+      Object.keys(src).forEach(function (id) {
+        var e = src[id] || {};
+        var ne = { s: num(e.s), r: num(e.r), w: num(e.w), n: typeof e.n === 'string' ? e.n.slice(0, 80) : '' };
+        if (ne.s != null || ne.r != null || ne.w != null) entries[id] = ne;
+      });
+      out.logs[k] = { dayId: l.dayId, note: typeof l.note === 'string' ? l.note.slice(0, 2000) : '', entries: entries };
+    });
+    return out;
+  }
+
+  var S = defaultState();
+  var UI = {
+    screen: 'cal', calMode: 'month', cur: new Date(), date: null, editId: null,
+    editingEx: null, delEx: null, adding: false, delDay: false, delLog: false,
+    statEx: null, allHist: false, modal: null, focusSel: null
+  };
+  var saveState = 'busy', dbRef = null, saveT = null, dirty = false, lsFail = false;
+
+  /* ---------- mentés ---------- */
+  function setSaveState(st) {
+    saveState = st;
+    var els = document.querySelectorAll('.savechip');
+    for (var i = 0; i < els.length; i++) els[i].outerHTML = saveChip();
+  }
+  function saveChip() {
+    var t = { busy: 'Mentés…', saved: 'Mentve', local: 'Ezen az eszközön', err: 'Nem sikerült' }[saveState];
+    var icn = saveState === 'saved' ? ic(ICON.check, 14, 3) : '';
+    return '<div class="savechip ' + (saveState === 'saved' ? '' : saveState) + '">' + icn + t + '</div>';
+  }
+  function persist() {
+    dirty = true;
+    try { localStorage.setItem(LS, JSON.stringify(S)); lsFail = false; } catch (e) { lsFail = true; }
+    clearTimeout(saveT);
+    setSaveState('busy');
+    saveT = setTimeout(flush, 500);
+  }
+  function flush() {
+    clearTimeout(saveT);
+    if (!dbRef) { setSaveState(lsFail ? 'err' : 'saved'); return Promise.resolve(); }
+    return dbRef.set(clone(S)).then(function () { setSaveState('saved'); }, function () { setSaveState('err'); });
+  }
+  function init() {
+    var local = null;
+    try { local = normalize(JSON.parse(localStorage.getItem(LS))); } catch (e) {}
+    S = local || defaultState();
+    render();
+    var p;
+    try { p = (window.claude && window.claude.use) ? window.claude.use('db') : Promise.resolve(null); } catch (e) { p = Promise.resolve(null); }
+    p.then(function (db) {
+      if (!db) { setSaveState(lsFail ? 'err' : 'saved'); return; }
+      dbRef = db.doc('app/state');
+      return dbRef.get().then(function (snap) {
+        if (snap.exists && !dirty) {
+          var n = normalize(snap.data());
+          if (n) { S = n; try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} render(true); }
+          setSaveState('saved');
+        } else {
+          return flush();
+        }
+      });
+    }).catch(function () { dbRef = null; setSaveState('saved'); });
+  }
+
+  /* ---------- modell ---------- */
+  function dayOf(id) {
+    for (var i = 0; i < S.days.length; i++) if (S.days[i].id === id) return S.days[i];
+    return null;
+  }
+  function palOf(day) { return day ? (PAL[day.color] || (isHex(day.color) ? derive(day.color) : PAL.teal)) : GREY; }
+  function vars(p) { return '--solid:' + p.solid + ';--tint:' + p.tint + ';--deep:' + p.deep + ';--on:' + (p.on || '#25222D'); }
+  function letter(day) { var c = day ? Array.from((day.name || '').trim())[0] : null; return (c || '?').toUpperCase(); }
+  function dayName(day) { return day ? (day.name.trim() || 'Névtelen nap') : 'Törölt nap'; }
+  function hasData(e) { return e && (e.s != null || e.r != null || e.w != null); }
+  function sr(e) {
+    if (e.s != null && e.r != null) return e.s + '×' + e.r;
+    if (e.r != null) return e.r + ' ism.';
+    if (e.s != null) return e.s + ' kör';
+    return '';
+  }
+  function describe(e) {
+    var p = [], a = sr(e);
+    if (a) p.push(a);
+    p.push(e.w != null ? fmtNum(e.w) + ' kg' : 'súly nélkül');
+    return p.join(' · ');
+  }
+  function prevEntry(exId, date) {
+    var ks = Object.keys(S.logs).filter(function (k) { return k < date; }).sort().reverse();
+    for (var i = 0; i < ks.length; i++) {
+      var e = S.logs[ks[i]].entries[exId];
+      if (hasData(e)) return { k: ks[i], e: e };
+    }
+    return null;
+  }
+  function exerciseIndex() {
+    var m = new Map();
+    S.days.forEach(function (d) { d.ex.forEach(function (x) { m.set(x.id, { id: x.id, name: x.name, group: dayName(d), pal: palOf(d) }); }); });
+    Object.keys(S.logs).forEach(function (k) {
+      var en = S.logs[k].entries;
+      Object.keys(en).forEach(function (id) { if (!m.has(id)) m.set(id, { id: id, name: en[id].n || 'Törölt gyakorlat', group: 'Korábbi gyakorlatok', pal: GREY }); });
+    });
+    return m;
+  }
+  function history(exId) {
+    var out = [];
+    Object.keys(S.logs).sort().forEach(function (k) {
+      var e = S.logs[k].entries[exId];
+      if (hasData(e)) out.push({ date: k, dayId: S.logs[k].dayId, e: e });
+    });
+    return out;
+  }
+
+  /* ---------- nézetek ---------- */
+  function tabOf() { return UI.screen === 'day' || UI.screen === 'cal' ? 'cal' : (UI.screen === 'stats' ? 'stats' : 'plans'); }
+  function nav() {
+    var t = tabOf();
+    function it(k, l, p) { return '<button type="button" class="nb' + (t === k ? ' on' : '') + '" data-a="tab" data-tab="' + k + '"' + (t === k ? ' aria-current="page"' : '') + '><span class="pill">' + ic(p, 22, 2) + '</span><span>' + l + '</span></button>'; }
+    return '<nav class="nav" aria-label="Fő menü"><div class="navin">' + it('cal', 'Naptár', ICON.cal) + it('plans', 'Edzések', ICON.dumb) + it('stats', 'Fejlődés', ICON.chart) + '</div></nav>';
+  }
+
+  function viewCal() {
+    var now = new Date(), tk = ymd(now), c = UI.cur, month = UI.calMode === 'month';
+    var eyebrow, title, prevL, nextL, away;
+    if (month) {
+      eyebrow = 'Edzésnapló'; title = c.getFullYear() + '. ' + MON[c.getMonth()];
+      prevL = 'Előző hónap'; nextL = 'Következő hónap';
+      away = c.getFullYear() !== now.getFullYear() || c.getMonth() !== now.getMonth();
+    } else {
+      var m0 = mondayOf(c), m1 = addDays(m0, 6);
+      eyebrow = isoWeek(m0) + '. hét';
+      title = m0.getMonth() === m1.getMonth()
+        ? cap(MONS[m0.getMonth()]) + ' ' + m0.getDate() + '–' + m1.getDate() + '.'
+        : cap(MONS[m0.getMonth()]) + ' ' + m0.getDate() + ' – ' + MONS[m1.getMonth()] + ' ' + m1.getDate() + '.';
+      prevL = 'Előző hét'; nextL = 'Következő hét';
+      away = ymd(mondayOf(now)) !== ymd(m0);
+    }
+    var h = '<div class="hdr"><div><div class="eyebrow">' + eyebrow + '</div><h1 class="' + (month ? 'long' : '') + '">' + esc(title) + '</h1></div>' +
+      '<div class="btns"><button type="button" class="ib" data-a="cal-prev" aria-label="' + prevL + '">' + ic(ICON.left) + '</button><button type="button" class="ib" data-a="cal-next" aria-label="' + nextL + '">' + ic(ICON.right) + '</button></div></div>';
+    h += '<div class="seg"><button type="button" data-a="cal-mode" data-mode="month" aria-pressed="' + month + '">Hónap</button><button type="button" data-a="cal-mode" data-mode="week" aria-pressed="' + !month + '">Hét</button></div>';
+    if (away) h += '<button type="button" class="linkbtn" data-a="cal-today">Ugrás a mai napra</button>';
+
+    if (month) {
+      var first = new Date(c.getFullYear(), c.getMonth(), 1);
+      var off = (first.getDay() + 6) % 7;
+      var dim = new Date(c.getFullYear(), c.getMonth() + 1, 0).getDate();
+      var total = Math.ceil((off + dim) / 7) * 7;
+      h += '<div class="wk" aria-hidden="true">' + WDS.map(function (w) { return '<div>' + w + '</div>'; }).join('') + '</div><div class="grid">';
+      for (var i = 0; i < total; i++) {
+        var d = addDays(first, i - off), k = ymd(d), log = S.logs[k];
+        var inM = d.getMonth() === c.getMonth(), day = log ? dayOf(log.dayId) : null;
+        var cls = 'cell' + (inM ? '' : ' out') + (log ? ' has' : '') + (k === tk ? ' today' : '');
+        var p = palOf(log ? day : null);
+        var label = MONS[d.getMonth()] + ' ' + d.getDate() + '., ' + (log ? dayName(day) : 'nincs edzés');
+        h += '<button type="button" class="' + cls + '" style="' + vars(p) + '" data-a="open-day" data-date="' + k + '" aria-label="' + esc(label) + '"><span>' + d.getDate() + '</span>' + (log ? '<span class="ltr">' + esc(letter(day)) + '</span>' : '') + '</button>';
+      }
+      h += '</div>';
+      h += '<div class="legend">' + S.days.map(function (d2) { return '<span class="chip" style="' + vars(palOf(d2)) + '"><i></i>' + esc(dayName(d2)) + '</span>'; }).join('') + '</div>';
+      var tl = S.logs[tk], td = tl ? dayOf(tl.dayId) : null;
+      h += '<div class="card todaycard"><div><div class="sm">Ma · ' + WDL[now.getDay()] + ', ' + MONS[now.getMonth()] + ' ' + now.getDate() + '.</div><div class="big">' + (tl ? esc(dayName(td)) + ' rögzítve' : 'Még nincs rögzített edzés') + '</div></div><button type="button" class="btn pri small" data-a="open-day" data-date="' + tk + '">' + (tl ? 'Megnyitás' : 'Rögzítés') + '</button></div>';
+    } else {
+      var mon = mondayOf(c);
+      h += '<div class="rows">';
+      for (var j = 0; j < 7; j++) {
+        var dd = addDays(mon, j), kk = ymd(dd), lg = S.logs[kk], isT = kk === tk;
+        var dy = lg ? dayOf(lg.dayId) : null;
+        h += '<div class="wrow"><div class="wdate"><div class="d">' + WDS[j] + '</div><div class="n' + (isT ? ' now' : '') + '">' + dd.getDate() + '</div></div>';
+        if (lg) {
+          h += '<button type="button" class="wcard" style="' + vars(palOf(dy)) + '" data-a="open-day" data-date="' + kk + '"><span class="dot">' + esc(letter(dy)) + '</span><span class="t">' + esc(dayName(dy)) + '</span>' + ic(ICON.right) + '</button>';
+        } else {
+          h += '<button type="button" class="wcard empty' + (isT ? ' today' : '') + '" data-a="open-day" data-date="' + kk + '"><span class="t">' + (isT ? 'Ma · válassz edzést' : 'Nincs edzés') + '</span>' + ic(ICON.plus) + '</button>';
+        }
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    return h;
+  }
+
+  function viewDay() {
+    var date = UI.date, d = parseYmd(date), log = S.logs[date];
+    var sel = log ? dayOf(log.dayId) : null;
+    var h = '<div class="hdr" style="justify-content:flex-start"><button type="button" class="ib" data-a="back-cal" aria-label="Vissza a naptárhoz">' + ic(ICON.left) + '</button><div style="flex:1;min-width:0"><div class="eyebrow">' + d.getFullYear() + '</div><h1 style="font-size:24px;margin:0">' + cap(WDL[d.getDay()]) + ', ' + MONS[d.getMonth()] + ' ' + d.getDate() + '.</h1></div>' + saveChip() + '</div>';
+    if (!S.days.length) return h + '<div class="empty-note">Még nincs edzésnap. Hozz létre egyet az Edzések fülön.</div>';
+    h += '<div class="dsel" role="group" aria-label="Edzésnap kiválasztása">' + S.days.map(function (x) {
+      return '<button type="button" style="' + vars(palOf(x)) + '" data-a="pick-day" data-id="' + esc(x.id) + '" aria-pressed="' + (sel === x) + '">' + esc(dayName(x)) + '</button>';
+    }).join('') + '</div>';
+    if (!log) return h + '<div class="empty-note">Válaszd ki fent, melyik edzést csináltad ezen a napon.</div>';
+    if (!sel) h += '<div class="empty-note">Ehhez a naphoz egy már törölt edzésnap tartozik. Válassz másikat fent.</div>';
+    else {
+      var p = palOf(sel);
+      h += '<div class="stack" style="' + vars(p) + '">';
+      if (!sel.ex.length) h += '<div class="empty-note">Ebben az edzésnapban még nincs gyakorlat. Add hozzá az Edzések fülön.</div>';
+      sel.ex.forEach(function (x) {
+        var e = log.entries[x.id] || {}, pv = prevEntry(x.id, date);
+        var hint = pv ? '<span class="hint">Legutóbb: ' + esc(describe(pv.e)) + '</span>' : '<span class="hint none">Első alkalom</span>';
+        function ph(v) { return (v != null) ? String(v) : '—'; }
+        function val(v) { return v != null ? esc(String(v).replace('.', ',')) : ''; }
+        var id = 'f' + x.id;
+        h += '<div class="ex"><div class="ex-top"><div class="nm">' + esc(x.name) + '</div>' + hint + '</div><div class="fields">' +
+          '<div><label for="' + id + 's">Kör</label><input id="' + id + 's" type="text" inputmode="numeric" data-ex="' + esc(x.id) + '" data-f="s" value="' + val(e.s) + '" placeholder="' + ph(pv && pv.e.s) + '" autocomplete="off"></div>' +
+          '<div><label for="' + id + 'r">Ismétlés</label><input id="' + id + 'r" type="text" inputmode="numeric" data-ex="' + esc(x.id) + '" data-f="r" value="' + val(e.r) + '" placeholder="' + ph(pv && pv.e.r) + '" autocomplete="off"></div>' +
+          '<div><label for="' + id + 'w">Súly (kg)</label><input id="' + id + 'w" class="w' + (e.w != null ? ' filled' : '') + '" type="text" inputmode="decimal" data-ex="' + esc(x.id) + '" data-f="w" value="' + val(e.w) + '" placeholder="' + (pv && pv.e.w != null ? fmtNum(pv.e.w) : '—') + '" autocomplete="off"></div>' +
+          '</div></div>';
+      });
+      h += '</div>';
+      h += '<div class="card note" style="margin-top:10px;padding:12px 16px 14px"><label for="noteBox">Megjegyzés</label><textarea id="noteBox" rows="2" data-f="note" placeholder="Hogy ment az edzés?">' + esc(log.note || '') + '</textarea></div>';
+    }
+    h += '<div style="margin-top:16px;display:flex;justify-content:center">' + (UI.delLog
+      ? '<div class="card" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;padding:12px 16px"><span style="font-weight:700;font-size:14px">Törlöd erről a napról?</span><button type="button" class="btn danger small" data-a="log-del-yes">Törlés</button><button type="button" class="btn sec small" data-a="log-del-no">Mégse</button></div>'
+      : '<button type="button" class="btn danger small" data-a="log-del">Edzés törlése erről a napról</button>') + '</div>';
+    return h;
+  }
+
+  function viewPlans() {
+    var h = '<div style="padding:0 4px"><div class="eyebrow">Edzések</div><h1>Edzésnapok</h1><p style="margin:8px 0 0;font-size:15px;font-weight:500;line-height:1.45;color:var(--mute)">Állítsd össze, melyik napon mit csinálsz. Koppints egy napra a szerkesztéshez.</p></div>';
+    if (S.examples) h += '<div class="banner"><span>Ezek példa gyakorlatok. Írd át őket a sajátjaidra.</span><button type="button" data-a="examples-dismiss">Értem</button></div>';
+    h += '<div class="stack" style="margin-top:20px;gap:12px">';
+    S.days.forEach(function (d) {
+      var names = d.ex.map(function (x) { return x.name; }).join(' · ');
+      h += '<button type="button" class="plan" style="' + vars(palOf(d)) + '" data-a="plan-open" data-id="' + esc(d.id) + '"><span class="dot">' + esc(letter(d)) + '</span><span class="tx"><span class="a">' + esc(dayName(d)) + '</span><span class="b">' + d.ex.length + ' gyakorlat</span>' + (names ? '<span class="c">' + esc(names) + '</span>' : '') + '</span>' + ic(ICON.right, 22) + '</button>';
+    });
+    h += '<button type="button" class="dashed" data-a="plan-new">' + ic(ICON.plus, 20, 2.4) + 'Új edzésnap hozzáadása</button></div>';
+    var n = Object.keys(S.logs).length;
+    h += '<div class="sect"><h2>Adataid</h2></div><div class="card data"><div style="font-size:15px;font-weight:700">' + n + ' rögzített edzés</div><p>Az adataid a telefonodon tárolódnak. Exportálással JSON-fájlba mentheted őket, így másik telefonra is átviheted.' + (S.lastExport ? ' Utolsó exportálás: ' + esc(shortDate(ymd(new Date(S.lastExport)))) : '') + '</p><div class="row"><button type="button" class="btn pri small" data-a="export">Exportálás fájlba</button><button type="button" class="btn sec small" data-a="import-open">Importálás</button><button type="button" class="btn sec small" data-a="copy-open">Szöveg másolása</button></div></div>';
+    return h;
+  }
+
+  function viewEdit() {
+    var d = dayOf(UI.editId);
+    if (!d) { UI.screen = 'plans'; return viewPlans(); }
+    var p = palOf(d);
+    var h = '<div class="hdr" style="justify-content:flex-start"><button type="button" class="ib" data-a="back-plans" aria-label="Vissza az edzésnapokhoz">' + ic(ICON.left) + '</button><h1 style="flex:1;margin:0;font-size:24px">Edzésnap szerkesztése</h1></div>';
+    h += '<div class="field" style="margin-top:20px;' + vars(p) + '"><label for="dayName">Név</label><input id="dayName" type="text" maxlength="40" value="' + esc(d.name) + '" data-f="dayname" autocomplete="off"><div class="lb" style="margin-top:14px">Szín</div><div class="sw">' +
+      PAL_KEYS.map(function (k) {
+        var on = d.color === k;
+        return '<button type="button" style="--solid:' + PAL[k].solid + '" data-a="set-color" data-color="' + k + '" aria-pressed="' + on + '" aria-label="' + PAL[k].label + (on ? ' (kiválasztva)' : '') + '">' + (on ? ic(ICON.check, 18, 3) : '') + '</button>';
+      }).join('') +
+      (function () {
+        var cu = isHex(d.color), cp = cu ? derive(d.color) : null;
+        return '<button type="button" class="swc' + (cu ? ' on' : '') + '"' + (cu ? ' style="--solid:' + cp.solid + ';--on:' + cp.on + '"' : '') + ' data-a="color-custom" aria-pressed="' + cu + '" aria-label="Egyéni szín' + (cu ? ' (kiválasztva)' : ' választása') + '">' + (cu ? ic(ICON.check, 18, 3) : '<span class="plus">' + ic(ICON.plus, 14, 3) + '</span>') + '</button>';
+      })() + '</div></div>';
+    h += '<div class="sect"><h2>Gyakorlatok</h2><span class="eyebrow">' + d.ex.length + ' db</span></div><div id="exlist">';
+    d.ex.forEach(function (x) {
+      if (UI.editingEx === x.id) {
+        h += '<div class="exrow editing" data-id="' + esc(x.id) + '"><input id="renEx" type="text" maxlength="60" value="' + esc(x.name) + '" aria-label="Gyakorlat neve"><button type="button" class="ib ok" data-a="ex-ren-ok" aria-label="Mentés">' + ic(ICON.check, 20, 2.6) + '</button><button type="button" class="ib" data-a="ex-cancel" aria-label="Mégse">' + ic(ICON.x, 18) + '</button></div>';
+      } else if (UI.delEx === x.id) {
+        h += '<div class="exrow confirm" data-id="' + esc(x.id) + '"><span class="nm">Törlöd: ' + esc(x.name) + '?</span><button type="button" class="btn danger small" data-a="ex-del-yes">Törlés</button><button type="button" class="btn sec small" data-a="ex-cancel">Mégse</button></div>';
+      } else {
+        h += '<div class="exrow" data-id="' + esc(x.id) + '"><button type="button" class="handle" data-id="' + esc(x.id) + '" aria-label="Átrendezés: ' + esc(x.name) + ' (húzással vagy a fel és le nyilakkal)">' + DOTS + '</button><span class="nm">' + esc(x.name) + '</span><button type="button" class="ib bare" data-a="ex-edit" data-id="' + esc(x.id) + '" aria-label="' + esc(x.name) + ' átnevezése" style="color:var(--mute)">' + ic(ICON.pencil, 20, 2) + '</button><button type="button" class="ib bare danger" data-a="ex-del" data-id="' + esc(x.id) + '" aria-label="' + esc(x.name) + ' törlése">' + ic(ICON.trash, 20, 2) + '</button></div>';
+      }
+    });
+    h += '</div>';
+    if (UI.adding) {
+      h += '<div class="exrow editing" style="margin-top:8px"><input id="newEx" type="text" maxlength="60" placeholder="Új gyakorlat neve" aria-label="Új gyakorlat neve"><button type="button" class="ib ok" data-a="ex-add-ok" aria-label="Hozzáadás">' + ic(ICON.check, 20, 2.6) + '</button><button type="button" class="ib" data-a="ex-cancel" aria-label="Mégse">' + ic(ICON.x, 18) + '</button></div>';
+    } else {
+      h += '<button type="button" class="dashed" style="margin-top:8px;min-height:56px;border-radius:18px" data-a="ex-add-open">' + ic(ICON.plus, 20, 2.4) + 'Gyakorlat hozzáadása</button>';
+    }
+    h += '<div class="footbtns">' + (UI.delDay
+      ? '<div class="card" style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px"><span style="font-weight:700;font-size:14px;flex:1;min-width:120px">Törlöd az edzésnapot? A korábbi adatok megmaradnak.</span><button type="button" class="btn danger small" data-a="day-del-yes">Törlés</button><button type="button" class="btn sec small" data-a="day-del-no">Mégse</button></div>'
+      : '<button type="button" class="btn danger" data-a="day-del">Nap törlése</button><button type="button" class="btn pri" data-a="back-plans">Kész</button>') + '</div>';
+    return h;
+  }
+
+  function niceTicks(min, max) {
+    var range = (max - min) || Math.max(Math.abs(max) * 0.2, 1);
+    var raw = range / 3, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    var steps = [1, 2, 2.5, 5, 10], step = mag * 10;
+    for (var i = 0; i < steps.length; i++) { if (steps[i] * mag >= raw) { step = steps[i] * mag; break; } }
+    var tmin = Math.floor(min / step) * step, tmax = Math.ceil(max / step) * step;
+    if (tmax === tmin) tmax += step;
+    var t = [];
+    for (var v = tmin; v <= tmax + step / 1000; v += step) t.push(Math.round(v * 1000) / 1000);
+    return t;
+  }
+  function chartSVG(pts, name) {
+    var W = 326, L = 44, R = 316, T = 16, B = 120;
+    var ws = pts.map(function (p) { return p.w; });
+    var ticks = niceTicks(Math.min.apply(null, ws), Math.max.apply(null, ws));
+    var tmin = ticks[0], tmax = ticks[ticks.length - 1];
+    var t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+    function X(t) { return L + (t - t0) / (t1 - t0) * (R - L); }
+    function Y(w) { return B - (w - tmin) / (tmax - tmin) * (B - T); }
+    var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.t).toFixed(1) + ' ' + Y(p.w).toFixed(1); }).join(' ');
+    var last = pts[pts.length - 1];
+    var s = '<svg viewBox="0 0 ' + W + ' 150" role="img" aria-label="Vonaldiagram: ' + esc(name) + ' súlya ' + fmtNum(pts[0].w) + ' kg-ról ' + fmtNum(last.w) + ' kg-ra változott">';
+    ticks.forEach(function (v) {
+      s += '<line x1="34" y1="' + Y(v).toFixed(1) + '" x2="322" y2="' + Y(v).toFixed(1) + '" stroke="#ECE8F1" stroke-width="1"/><text x="26" y="' + (Y(v) + 4).toFixed(1) + '" text-anchor="end" font-size="11" font-weight="600" fill="#6E6A78">' + fmtNum(v) + '</text>';
+    });
+    s += '<path d="' + line + ' L' + X(last.t).toFixed(1) + ' ' + B + ' L' + L + ' ' + B + ' Z" fill="#2CC6B5" fill-opacity="0.16"/>';
+    s += '<path d="' + line + '" fill="none" stroke="#1FB5A4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    if (pts.length <= 24) pts.slice(0, -1).forEach(function (p) { s += '<circle cx="' + X(p.t).toFixed(1) + '" cy="' + Y(p.w).toFixed(1) + '" r="4.5" fill="#FFFFFF" stroke="#1FB5A4" stroke-width="2.5"/>'; });
+    s += '<circle cx="' + X(last.t).toFixed(1) + '" cy="' + Y(last.w).toFixed(1) + '" r="7" fill="#25222D" stroke="#FFFFFF" stroke-width="3"/>';
+    s += '<text x="' + L + '" y="142" font-size="11" font-weight="600" fill="#6E6A78">' + esc(shortDate(pts[0].date)) + '</text><text x="322" y="142" text-anchor="end" font-size="11" font-weight="600" fill="#6E6A78">' + esc(shortDate(last.date)) + '</text></svg>';
+    return s;
+  }
+
+  function viewStats() {
+    var idx = exerciseIndex(), ids = Array.from(idx.keys());
+    var h = '<div style="padding:0 4px"><div class="eyebrow">Fejlődés</div><h1>Gyakorlatok</h1></div>';
+    if (!ids.length) return h + '<div class="empty-note">Még nincs gyakorlat. Add hozzá az Edzések fülön.</div>';
+    if (!UI.statEx || !idx.has(UI.statEx)) {
+      var withData = ids.filter(function (id) { return history(id).length; });
+      UI.statEx = withData.length ? withData[0] : ids[0];
+    }
+    var cur = idx.get(UI.statEx);
+    h += '<button type="button" class="pickbtn" style="' + vars(cur.pal) + '" data-a="ex-pick-open" aria-haspopup="dialog" aria-label="Gyakorlat kiválasztása, jelenleg: ' + esc(cur.name) + '"><span class="pd"></span><span class="pn"><small>Gyakorlat</small>' + esc(cur.name) + '</span>' + ic(ICON.down, 20, 2.4) + '</button>';
+    var hist = history(UI.statEx), name = cur.name;
+    if (!hist.length) return h + '<div class="empty-note">Ehhez a gyakorlathoz még nincs rögzített adat. A naptárban, egy edzésnapon írhatod be.</div>';
+    var latest = hist[hist.length - 1], pal = palOf(dayOf(latest.dayId));
+    var prev = hist.length > 1 ? hist[hist.length - 2] : null;
+    var chipH = '';
+    if (prev && latest.e.w != null && prev.e.w != null) {
+      var df = Math.round((latest.e.w - prev.e.w) * 100) / 100;
+      chipH = '<div class="r"><div class="delta ' + (df === 0 ? 'flat' : (df < 0 ? 'down' : '')) + '">' + (df === 0 ? '= nincs változás' : ic(df > 0 ? ICON.up : ICON.dn, 16, 3) + fmtNum(Math.abs(df)) + ' kg') + '</div><small>az előzőhöz képest</small></div>';
+    } else if (!prev) chipH = '<div class="r"><small>Első rögzített alkalom</small></div>';
+    h += '<div class="hero" style="' + vars(pal) + '"><div><div class="l">Legutóbb</div><div class="v' + (latest.e.w == null ? ' sm' : '') + '">' + (latest.e.w != null ? fmtNum(latest.e.w) + ' kg' : 'Súly nélkül') + '</div><div class="s">' + esc([sr(latest.e), shortDate(latest.date), dayName(dayOf(latest.dayId))].filter(Boolean).join(' · ')) + '</div></div>' + chipH + '</div>';
+    var pts = hist.filter(function (x) { return x.e.w != null; }).map(function (x) { return { date: x.date, t: parseYmd(x.date).getTime(), w: x.e.w }; });
+    h += '<div class="card chartcard"><div class="tt">Súly alakulása</div>' + (pts.length >= 2 ? chartSVG(pts, name) : '<div class="none">' + (pts.length ? 'A diagram két rögzített súlytól jelenik meg.' : 'Ehhez a gyakorlathoz nincs súly rögzítve.') + '</div>') + '</div>';
+    var rev = hist.slice().reverse(), shown = UI.allHist ? rev : rev.slice(0, 5);
+    h += '<div class="sect"><h2>Előzmények</h2>' + (rev.length > 5 ? '<button type="button" class="linkbtn" style="margin:0;min-height:44px" data-a="hist-toggle">' + (UI.allHist ? 'Kevesebb' : 'Mind (' + rev.length + ')') + '</button>' : '') + '</div><div class="hist">';
+    shown.forEach(function (x) {
+      var dd = dayOf(x.dayId);
+      h += '<button type="button" class="hrow" data-a="open-day" data-date="' + x.date + '"><span class="dt">' + esc(shortDate(x.date)) + '</span><span class="chip" style="' + vars(palOf(dd)) + '">' + esc(dayName(dd)) + '</span><span class="rp">' + esc(sr(x.e)) + '</span><span class="wt">' + (x.e.w != null ? fmtNum(x.e.w) + ' kg' : '—') + '</span></button>';
+    });
+    return h + '</div>';
+  }
+
+  function viewModal() {
+    var m = UI.modal;
+    if (!m) return '';
+    if (m.type === 'color') {
+      var cd = dayOf(UI.editId), hx = rgbHex.apply(null, hsvRgb(m.h, m.s, m.v));
+      return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="sheet cp"><div class="grab" aria-hidden="true"></div><h2 id="mt">Egyéni szín</h2>' +
+        '<div class="cp-prev" id="cpPrev" style="' + vars(derive(hx)) + '"><span class="dot">' + esc(letter(cd)) + '</span><span class="chip">' + esc(dayName(cd)) + '</span></div>' +
+        '<div class="sv" id="cpSV" tabindex="0" role="group" aria-label="Telítettség és fényerő (nyilakkal állítható)" style="background-color:hsl(' + m.h + ',100%,50%)"><div class="svthumb" id="cpThumb" style="left:' + (m.s * 100) + '%;top:' + ((1 - m.v) * 100) + '%;background:' + hx + '"></div></div>' +
+        '<div class="hue" id="cpHue" tabindex="0" role="slider" aria-label="Árnyalat" aria-valuemin="0" aria-valuemax="360" aria-valuenow="' + Math.round(m.h) + '"><div class="huethumb" id="cpHT" style="left:' + (m.h / 360 * 100) + '%;background:hsl(' + m.h + ',100%,50%)"></div></div>' +
+        '<div class="hexrow"><label for="cpHex">Hex</label><input id="cpHex" type="text" data-f="cphex" maxlength="7" value="' + hx.toUpperCase() + '" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>' +
+        '<div class="row"><button type="button" class="btn sec" data-a="modal-close">Mégse</button><button type="button" class="btn pri" data-a="cp-ok">Kész</button></div></div></div>';
+    }
+    if (m.type === 'pick') {
+      var idx = exerciseIndex(), groups = {}, order = [];
+      idx.forEach(function (x, id) { if (!groups[x.group]) { groups[x.group] = []; order.push(x.group); } groups[x.group].push(x); });
+      return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="sheet pick"><div class="grab" aria-hidden="true"></div><h2 id="mt">Gyakorlat kiválasztása</h2><div class="pl">' + order.map(function (g) {
+        var pal = groups[g][0].pal;
+        return '<div class="pg" style="' + vars(pal) + '"><span class="chip"><i></i>' + esc(g) + '</span></div>' + groups[g].map(function (x) {
+          var on = x.id === UI.statEx;
+          return '<button type="button" class="po' + (on ? ' on' : '') + '" style="' + vars(x.pal) + '" data-a="ex-pick" data-id="' + esc(x.id) + '"' + (on ? ' aria-current="true"' : '') + '><span>' + esc(x.name) + '</span>' + (on ? ic(ICON.check, 20, 3) : '') + '</button>';
+        }).join('');
+      }).join('') + '</div><div class="row"><button type="button" class="btn sec" data-a="modal-close">Bezár</button></div></div></div>';
+    }
+    if (m.type === 'import') {
+      return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="sheet"><h2 id="mt">Importálás</h2><p>A fájlban ' + m.days + ' edzésnap és ' + m.logs + ' rögzített edzés van. A jelenlegi adataid felülíródnak.</p><div class="row"><button type="button" class="btn sec" data-a="modal-close">Mégse</button><button type="button" class="btn pri" data-a="import-yes">Importálás</button></div></div></div>';
+    }
+    return '<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="sheet"><h2 id="mt">Adatok szövegként</h2><p>Másold ki ezt a szöveget, és mentsd egy .json fájlba. Importáláskor ugyanez a formátum kell.</p><label class="sr" for="jsonBox">Adatok</label><textarea id="jsonBox" readonly>' + esc(m.text) + '</textarea><div class="row"><button type="button" class="btn sec" data-a="modal-close">Bezár</button><button type="button" class="btn pri" data-a="copy-do">Másolás</button></div></div></div>';
+  }
+
+  function render(keep) {
+    var y = window.scrollY, body;
+    switch (UI.screen) {
+      case 'day': body = viewDay(); break;
+      case 'plans': body = viewPlans(); break;
+      case 'edit': body = viewEdit(); break;
+      case 'stats': body = viewStats(); break;
+      default: body = viewCal();
+    }
+    document.getElementById('app').innerHTML = body + nav() + viewModal();
+    window.scrollTo(0, keep ? y : 0);
+    if (UI.focusSel) {
+      var el = document.querySelector(UI.focusSel);
+      UI.focusSel = null;
+      if (el) { el.focus(); if (el.select && el.tagName === 'INPUT') el.select(); }
+    }
+  }
+
+  var toastT;
+  function toast(msg) {
+    var b = document.getElementById('toastbox');
+    b.innerHTML = '<div class="toast">' + esc(msg) + '</div>';
+    clearTimeout(toastT);
+    toastT = setTimeout(function () { b.innerHTML = ''; }, 2600);
+  }
+
+  /* ---------- műveletek ---------- */
+  function resetEdit() { UI.editingEx = null; UI.delEx = null; UI.adding = false; UI.delDay = false; UI.delLog = false; }
+  function go(screen) { resetEdit(); UI.screen = screen; render(); }
+  function editDay() { return dayOf(UI.editId); }
+
+  function doAdd() {
+    var inp = document.getElementById('newEx'), d = editDay();
+    if (!inp || !d) return;
+    var v = inp.value.trim();
+    if (!v) { inp.focus(); return; }
+    d.ex.push({ id: uid(), name: v });
+    persist();
+    UI.adding = true; UI.focusSel = '#newEx';
+    render(true);
+  }
+  function doRename() {
+    var inp = document.getElementById('renEx'), d = editDay();
+    if (!inp || !d) return;
+    var v = inp.value.trim();
+    if (v) d.ex.forEach(function (x) { if (x.id === UI.editingEx) x.name = v; });
+    persist();
+    UI.editingEx = null;
+    render(true);
+  }
+  function moveEx(id, dir) {
+    var d = editDay(); if (!d) return;
+    var i = d.ex.findIndex(function (x) { return x.id === id; }), j = i + dir;
+    if (i < 0 || j < 0 || j >= d.ex.length) return;
+    var t = d.ex[i]; d.ex[i] = d.ex[j]; d.ex[j] = t;
+    persist();
+    UI.focusSel = '.handle[data-id="' + id + '"]';
+    render(true);
+  }
+  function nextDay() {
+    var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', nm = null;
+    for (var i = 0; i < letters.length; i++) {
+      var cand = letters[i] + ' nap';
+      if (!S.days.some(function (d) { return d.name === cand; })) { nm = cand; break; }
+    }
+    var used = S.days.map(function (d) { return d.color; });
+    var col = PAL_KEYS.filter(function (k) { return used.indexOf(k) < 0; })[0] || PAL_KEYS[S.days.length % PAL_KEYS.length];
+    return { id: uid(), name: nm || (S.days.length + 1) + '. nap', color: col, ex: [] };
+  }
+
+  function saveFile(name, text) {
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    function viaShare() {
+      var file = null;
+      try { file = new File([text], name, { type: 'application/json' }); } catch (e) {}
+      if (!file || !navigator.canShare || !navigator.canShare({ files: [file] })) return Promise.resolve(false);
+      return navigator.share({ files: [file] }).then(function () { return true; }, function (e) { return (e && e.name === 'AbortError') ? 'cancel' : false; });
+    }
+    function viaLink() {
+      try {
+        var url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+        var a = document.createElement('a');
+        a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+        return Promise.resolve(true);
+      } catch (e) { return Promise.resolve(false); }
+    }
+    if (isIOS) return viaShare().then(function (r) { return r === false ? viaLink() : r; });
+    return viaLink();
+  }
+
+  function exportData() {
+    var payload = JSON.stringify({ app: 'edzesnaplo', version: 1, exportedAt: new Date().toISOString(), data: S }, null, 2);
+    saveFile('edzesnaplo-' + ymd(new Date()) + '.json', payload).then(function (r) {
+      if (r === 'cancel') return;
+      if (r) { S.lastExport = new Date().toISOString(); persist(); toast('Az exportálás kész'); render(true); }
+      else { UI.modal = { type: 'copy', text: payload }; render(true); }
+    });
+  }
+
+  /* ---------- események ---------- */
+  var app = document.getElementById('app');
+
+  app.addEventListener('click', function (ev) {
+    if (ev.target.classList && ev.target.classList.contains('overlay') && UI.modal && UI.modal.type !== 'color') { UI.modal = null; render(true); return; }
+    var t = ev.target.closest('[data-a]');
+    if (!t) return;
+    var a = t.dataset.a, id = t.dataset.id;
+    switch (a) {
+      case 'color-custom': {
+        var dc = editDay(); if (!dc) break;
+        var base = isHex(dc.color) ? dc.color : (PAL[dc.color] || PAL.teal).solid, hv = rgbHsv.apply(null, hexRgb(base));
+        UI.modal = { type: 'color', h: hv.h, s: hv.s, v: hv.v, drag: null, pid: null };
+        render(true); break;
+      }
+      case 'cp-ok': {
+        var dd = editDay();
+        if (dd && UI.modal && UI.modal.type === 'color') { dd.color = rgbHex.apply(null, hsvRgb(UI.modal.h, UI.modal.s, UI.modal.v)); persist(); }
+        UI.modal = null; render(true); break;
+      }
+      case 'ex-pick-open': UI.modal = { type: 'pick' }; render(true); break;
+      case 'ex-pick': UI.statEx = id; UI.allHist = false; UI.modal = null; render(true); break;
+      case 'tab': go(t.dataset.tab); break;
+      case 'cal-mode':
+        if (UI.calMode !== t.dataset.mode) {
+          UI.calMode = t.dataset.mode;
+          var n = new Date();
+          if (UI.calMode === 'week') UI.cur = (n.getFullYear() === UI.cur.getFullYear() && n.getMonth() === UI.cur.getMonth()) ? n : new Date(UI.cur.getFullYear(), UI.cur.getMonth(), 1);
+          render(true);
+        }
+        break;
+      case 'cal-prev': case 'cal-next': {
+        var s = a === 'cal-next' ? 1 : -1;
+        UI.cur = UI.calMode === 'month' ? new Date(UI.cur.getFullYear(), UI.cur.getMonth() + s, 1) : addDays(UI.cur, 7 * s);
+        render(true); break;
+      }
+      case 'cal-today': UI.cur = new Date(); render(true); break;
+      case 'open-day': resetEdit(); UI.date = t.dataset.date; UI.screen = 'day'; render(); break;
+      case 'back-cal': go('cal'); break;
+      case 'back-plans': go('plans'); break;
+      case 'pick-day':
+        var lg = S.logs[UI.date];
+        if (!lg) S.logs[UI.date] = { dayId: id, note: '', entries: {} }; else lg.dayId = id;
+        UI.delLog = false; persist(); render(true); break;
+      case 'log-del': UI.delLog = true; render(true); break;
+      case 'log-del-no': UI.delLog = false; render(true); break;
+      case 'log-del-yes': delete S.logs[UI.date]; persist(); UI.delLog = false; go('cal'); break;
+      case 'plan-open': resetEdit(); UI.editId = id; UI.screen = 'edit'; render(); break;
+      case 'plan-new': var nd = nextDay(); S.days.push(nd); persist(); resetEdit(); UI.editId = nd.id; UI.screen = 'edit'; UI.focusSel = '#dayName'; render(); break;
+      case 'examples-dismiss': S.examples = false; persist(); render(true); break;
+      case 'set-color': var d1 = editDay(); if (d1) { d1.color = t.dataset.color; persist(); render(true); } break;
+      case 'ex-edit': UI.editingEx = id; UI.delEx = null; UI.adding = false; UI.focusSel = '#renEx'; render(true); break;
+      case 'ex-ren-ok': doRename(); break;
+      case 'ex-cancel': UI.editingEx = null; UI.delEx = null; UI.adding = false; render(true); break;
+      case 'ex-del': UI.delEx = id; UI.editingEx = null; UI.adding = false; render(true); break;
+      case 'ex-del-yes': var d2 = editDay(); if (d2) { d2.ex = d2.ex.filter(function (x) { return x.id !== UI.delEx; }); persist(); } UI.delEx = null; render(true); break;
+      case 'ex-add-open': UI.adding = true; UI.editingEx = null; UI.delEx = null; UI.focusSel = '#newEx'; render(true); break;
+      case 'ex-add-ok': doAdd(); break;
+      case 'day-del': UI.delDay = true; render(true); break;
+      case 'day-del-no': UI.delDay = false; render(true); break;
+      case 'day-del-yes': S.days = S.days.filter(function (d) { return d.id !== UI.editId; }); persist(); go('plans'); break;
+      case 'hist-toggle': UI.allHist = !UI.allHist; render(true); break;
+      case 'export': exportData(); break;
+      case 'copy-open': UI.modal = { type: 'copy', text: JSON.stringify({ app: 'edzesnaplo', version: 1, exportedAt: new Date().toISOString(), data: S }, null, 2) }; render(true); break;
+      case 'import-open': document.getElementById('importFile').click(); break;
+      case 'modal-close': UI.modal = null; render(true); break;
+      case 'copy-do': {
+        var box = document.getElementById('jsonBox');
+        var done = function () { toast('Kimásolva'); };
+        var fallback = function () { box.focus(); box.select(); toast('Jelöld ki és másold ki a szöveget'); };
+        try { navigator.clipboard.writeText(UI.modal.text).then(done, fallback); } catch (e) { fallback(); }
+        break;
+      }
+      case 'import-yes':
+        S = UI.modal.state; UI.modal = null; UI.statEx = null; persist(); flush(); toast('Az importálás kész'); go('plans'); break;
+    }
+  });
+
+  app.addEventListener('input', function (ev) {
+    var el = ev.target, f = el.dataset && el.dataset.f;
+    if (!f) return;
+    if (f === 'cphex') {
+      var hxv = el.value.trim(); if (hxv.charAt(0) !== '#') hxv = '#' + hxv;
+      if (isHex(hxv) && UI.modal && UI.modal.type === 'color') { var hh = rgbHsv.apply(null, hexRgb(hxv)); UI.modal.h = hh.h; UI.modal.s = hh.s; UI.modal.v = hh.v; cpUpdate(true); }
+      return;
+    }
+    if (f === 'dayname') { var d = editDay(); if (d) { d.name = el.value; persist(); } return; }
+    var log = S.logs[UI.date];
+    if (!log) return;
+    if (f === 'note') { log.note = el.value; persist(); return; }
+    var exId = el.dataset.ex, day = dayOf(log.dayId), nm = '';
+    if (day) day.ex.forEach(function (x) { if (x.id === exId) nm = x.name; });
+    var e = log.entries[exId] || { s: null, r: null, w: null, n: nm };
+    var raw = el.value.trim().replace(',', '.'), v = raw === '' ? null : parseFloat(raw);
+    if (v != null && !isFinite(v)) v = null;
+    if (f !== 'w' && v != null) v = Math.round(v);
+    e[f] = v; e.n = nm || e.n;
+    if (hasData(e)) log.entries[exId] = e; else delete log.entries[exId];
+    if (f === 'w') el.classList.toggle('filled', e.w != null);
+    persist();
+  });
+
+  app.addEventListener('change', function (ev) {
+    if (ev.target.id === 'statSel') { UI.statEx = ev.target.value; UI.allHist = false; render(true); }
+  });
+
+  app.addEventListener('keydown', function (ev) {
+    var el = ev.target;
+    if ((el.id === 'cpSV' || el.id === 'cpHue') && UI.modal && UI.modal.type === 'color') {
+      var m = UI.modal, st = ev.shiftKey ? 0.1 : 0.03, ch = false;
+      if (el.id === 'cpSV') {
+        if (ev.key === 'ArrowLeft') { m.s = Math.max(0, m.s - st); ch = true; }
+        else if (ev.key === 'ArrowRight') { m.s = Math.min(1, m.s + st); ch = true; }
+        else if (ev.key === 'ArrowUp') { m.v = Math.min(1, m.v + st); ch = true; }
+        else if (ev.key === 'ArrowDown') { m.v = Math.max(0, m.v - st); ch = true; }
+      } else {
+        if (ev.key === 'ArrowLeft' || ev.key === 'ArrowDown') { m.h = Math.max(0, m.h - 4); ch = true; }
+        else if (ev.key === 'ArrowRight' || ev.key === 'ArrowUp') { m.h = Math.min(359.99, m.h + 4); ch = true; }
+      }
+      if (ch) { ev.preventDefault(); cpUpdate(); }
+      return;
+    }
+    if (el.id === 'newEx') { if (ev.key === 'Enter') { ev.preventDefault(); doAdd(); } else if (ev.key === 'Escape') { UI.adding = false; render(true); } }
+    else if (el.id === 'renEx') { if (ev.key === 'Enter') { ev.preventDefault(); doRename(); } else if (ev.key === 'Escape') { UI.editingEx = null; render(true); } }
+    else if (el.classList && el.classList.contains('handle')) {
+      if (ev.key === 'ArrowUp') { ev.preventDefault(); moveEx(el.dataset.id, -1); }
+      else if (ev.key === 'ArrowDown') { ev.preventDefault(); moveEx(el.dataset.id, 1); }
+    }
+  });
+
+  /* húzással átrendezés */
+  function cpUpdate(skipHex) {
+    var m = UI.modal;
+    if (!m || m.type !== 'color') return;
+    var sv = document.getElementById('cpSV');
+    if (!sv) return;
+    var hex = rgbHex.apply(null, hsvRgb(m.h, m.s, m.v));
+    sv.style.backgroundColor = 'hsl(' + m.h + ',100%,50%)';
+    var th = document.getElementById('cpThumb');
+    th.style.left = (m.s * 100) + '%'; th.style.top = ((1 - m.v) * 100) + '%'; th.style.background = hex;
+    document.getElementById('cpHue').setAttribute('aria-valuenow', Math.round(m.h));
+    var ht = document.getElementById('cpHT');
+    ht.style.left = (m.h / 360 * 100) + '%'; ht.style.background = 'hsl(' + m.h + ',100%,50%)';
+    document.getElementById('cpPrev').setAttribute('style', vars(derive(hex)));
+    if (!skipHex) document.getElementById('cpHex').value = hex.toUpperCase();
+  }
+  function cpPoint(ev) {
+    var m = UI.modal;
+    if (!m || !m.drag) return;
+    var el = document.getElementById(m.drag === 'sv' ? 'cpSV' : 'cpHue'), r = el.getBoundingClientRect();
+    var x = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+    if (m.drag === 'sv') { m.s = x; m.v = 1 - Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height)); }
+    else m.h = Math.min(359.99, x * 360);
+    cpUpdate();
+  }
+  var drag = null;
+  app.addEventListener('pointerdown', function (ev) {
+    var svEl = ev.target.closest('#cpSV'), huEl = ev.target.closest('#cpHue');
+    if ((svEl || huEl) && UI.modal && UI.modal.type === 'color') {
+      UI.modal.drag = svEl ? 'sv' : 'hue'; UI.modal.pid = ev.pointerId;
+      try { (svEl || huEl).setPointerCapture(ev.pointerId); } catch (e) {}
+      cpPoint(ev); ev.preventDefault();
+      return;
+    }
+    var h = ev.target.closest('.handle');
+    if (!h) return;
+    var row = h.closest('.exrow'), list = row.parentElement;
+    drag = { row: row, list: list, pid: ev.pointerId };
+    try { list.setPointerCapture(ev.pointerId); } catch (e) {}
+    row.classList.add('dragging');
+    ev.preventDefault();
+  });
+  app.addEventListener('pointermove', function (ev) {
+    if (UI.modal && UI.modal.type === 'color' && UI.modal.drag && ev.pointerId === UI.modal.pid) { cpPoint(ev); return; }
+    if (!drag || ev.pointerId !== drag.pid) return;
+    var rows = Array.prototype.filter.call(drag.list.querySelectorAll('.exrow'), function (r) { return r !== drag.row; });
+    var before = null;
+    for (var i = 0; i < rows.length; i++) {
+      var b = rows[i].getBoundingClientRect();
+      if (ev.clientY < b.top + b.height / 2) { before = rows[i]; break; }
+    }
+    if (before) { if (drag.row.nextSibling !== before) drag.list.insertBefore(drag.row, before); }
+    else if (rows.length && drag.list.lastElementChild !== drag.row) drag.list.appendChild(drag.row);
+  });
+  function endDrag(ev) {
+    if (UI.modal && UI.modal.type === 'color' && UI.modal.drag) { UI.modal.drag = null; return; }
+    if (!drag || ev.pointerId !== drag.pid) return;
+    var d = editDay(), ids = Array.prototype.map.call(drag.list.querySelectorAll('.exrow'), function (r) { return r.dataset.id; });
+    drag.row.classList.remove('dragging');
+    drag = null;
+    if (d) {
+      var map = {};
+      d.ex.forEach(function (x) { map[x.id] = x; });
+      var re = ids.map(function (i) { return map[i]; }).filter(Boolean);
+      if (re.length === d.ex.length) { d.ex = re; persist(); }
+    }
+    render(true);
+  }
+  app.addEventListener('pointerup', endDrag);
+  app.addEventListener('pointercancel', endDrag);
+
+  /* importálás fájlból */
+  document.getElementById('importFile').addEventListener('change', function (ev) {
+    var f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      var st = null;
+      try { st = normalize(JSON.parse(String(r.result))); } catch (e) {}
+      if (!st) { toast('Ez a fájl nem edzésnapló-mentés'); return; }
+      UI.modal = { type: 'import', state: st, days: st.days.length, logs: Object.keys(st.logs).length };
+      render(true);
+    };
+    r.onerror = function () { toast('A fájl nem olvasható'); };
+    r.readAsText(f);
+  });
+
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
+  init();
+})();
+</script>
+</body>
+</html>
