@@ -36,10 +36,18 @@ jobs:
           cat > android/app/src/main/java/com/bendivida/naplo/MainActivity.java <<'EOF'
           package com.bendivida.naplo;
 
+          import android.graphics.Color;
+          import android.graphics.drawable.ColorDrawable;
+          import android.graphics.drawable.Drawable;
+          import android.graphics.drawable.LayerDrawable;
+          import android.os.Build;
           import android.os.Bundle;
           import android.view.View;
+          import android.view.Window;
           import androidx.core.graphics.Insets;
           import androidx.core.view.ViewCompat;
+          import androidx.core.view.WindowCompat;
+          import androidx.core.view.WindowInsetsControllerCompat;
           import androidx.core.view.WindowInsetsCompat;
           import com.getcapacitor.BridgeActivity;
 
@@ -47,11 +55,22 @@ jobs:
             @Override
             public void onCreate(Bundle savedInstanceState) {
               super.onCreate(savedInstanceState);
+              Window w = getWindow();
+              WindowCompat.setDecorFitsSystemWindows(w, false);
+              w.setStatusBarColor(Color.TRANSPARENT);
+              w.setNavigationBarColor(Color.TRANSPARENT);
+              if (Build.VERSION.SDK_INT >= 29) { w.setNavigationBarContrastEnforced(false); }
+              WindowInsetsControllerCompat c = WindowCompat.getInsetsController(w, w.getDecorView());
+              c.setAppearanceLightStatusBars(true);
+              c.setAppearanceLightNavigationBars(true);
               View root = findViewById(android.R.id.content);
               root.setBackgroundColor(0xFFF7F5FA);
               ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-                Insets i = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+                Insets i = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
                 v.setPadding(i.left, i.top, i.right, i.bottom);
+                LayerDrawable ld = new LayerDrawable(new Drawable[] { new ColorDrawable(0xFFFFFFFF), new ColorDrawable(0xFFF7F5FA) });
+                ld.setLayerInset(1, 0, 0, 0, i.bottom);
+                v.setBackground(ld);
                 return WindowInsetsCompat.CONSUMED;
               });
             }
