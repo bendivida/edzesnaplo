@@ -761,6 +761,12 @@ input::placeholder,textarea::placeholder{color:#8F8B9A;opacity:1;font-weight:600
   }
 
   function saveFile(name, text) {
+    var cap = window.Capacitor, P = cap && cap.Plugins;
+    if (cap && cap.isNativePlatform && cap.isNativePlatform() && P && P.Filesystem && P.Share) {
+      return P.Filesystem.writeFile({ path: name, data: text, directory: 'CACHE', encoding: 'utf8' })
+        .then(function (w) { return P.Share.share({ title: name, url: w.uri, dialogTitle: 'Exportálás' }); })
+        .then(function () { return true; }, function (e) { return (e && /cancel/i.test(String(e.message || e))) ? 'cancel' : false; });
+    }
     var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     function viaShare() {
       var file = null;
