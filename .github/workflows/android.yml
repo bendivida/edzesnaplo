@@ -34,6 +34,8 @@ jobs:
           npx cap init "Napló" com.bendivida.naplo --web-dir www
           npx cap add android
           mkdir -p assets
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
           convert ../icon-maskable-512.png -resize 1024x1024 assets/icon-only.png
           npx capacitor-assets generate --android --iconBackgroundColor '#2CC6B5' --iconBackgroundColorDark '#2CC6B5'
           npx cap sync android
